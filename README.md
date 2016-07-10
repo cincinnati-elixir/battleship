@@ -6,6 +6,9 @@ Write your own Battleship AI in Elixir and pit it against other players!
 This idea (and much of this README) were taken from
 https://github.com/threedaymonk/battleship
 
+WORK IN PROGRESS
+================
+
 The game
 --------
 
