@@ -48,8 +48,8 @@ This must return a string containing the name of the team or player.
 ### `new_game`
 
 This is called whenever a game starts. It must return the initial positioning
-of the fleet as an list of 5 tuples, one for each ship. The format of each
-array is:
+of the fleet as an list of five tuples, one for each ship. The format of each
+tuple is:
 
     {x, y, length, orientation}
 
@@ -79,7 +79,7 @@ turns, the third turn will be called with:
 
 and so on.
 
-`take_turn` must return a list of co-ordinates for the next shot. In the
+`take_turn` must return a tuple of co-ordinates for the next shot. In the
 example above, we can see that the player has already played `{0,0}`, yielding
 a hit, and `{1,0}`, giving a miss. They can now return a reasonable guess of
 `{0,1}` for their next shot.
