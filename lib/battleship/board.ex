@@ -6,7 +6,9 @@ defmodule Battleship.Board do
   defstruct size: 0, fleet_spec: [], grid: nil, fleet: []
 
   @type size :: 3..100
-  @type coordinate :: {non_neg_integer, non_neg_integer} # {x, y}
+  @type x_coordinate :: non_neg_integer
+  @type y_coordinate :: non_neg_integer
+  @type coordinate :: {x_coordinate, y_coordinate}
 
   @type board :: %__MODULE__{
     size: non_neg_integer,
@@ -15,6 +17,8 @@ defmodule Battleship.Board do
     fleet: [Battleship.Game.ship]
   }
 
+  @typedoc "Describes the result of firing a shot."
+  @type shot_result :: :hit | :miss | {:sunk, Battleship.Game.ship_length}
   @type cell_status :: :hit | :miss | :unknown
   @type status :: [[cell_status]]
 
@@ -36,7 +40,7 @@ defmodule Battleship.Board do
       iex> board.size
       10
   """
-  @spec new(size, Battleship.Game.fleet) :: board
+  @spec new(size, Battleship.Game.fleet_spec) :: board
   def new(size, fleet_spec) when size in 3..100 do
     cell = %{occupied?: false, shot?: false}
     grid = Grid.new(size, cell)
@@ -85,19 +89,26 @@ defmodule Battleship.Board do
     Grid.to_list(status_grid)
   end
 
+  @doc "Is `{x, y}` a legal shot coordinate for the `board`?"
+  @spec legal_shot?(board, any) :: boolean
+  def legal_shot?(board, {x, y}), do: on_board?(board, {x, y})
+  def legal_shot?(_board, _), do: false
+
   @doc """
-  Fire a shot at the given `coordinate` of the `board`. Returns the updated
-  board.
+  Fire a shot at the given `coordinate` of the `board`. Returns a tuple
+  containing the shot_result as the first element, and the updated board as the
+  second element.
 
   Raises an `IllegalMoveError` if the `coordinate` is not on the board.
   """
-  @spec fire!(board, coordinate) :: board
-  def fire!(board, coordinate) do
-    if on_board?(board, coordinate) do
+  @spec fire!(board, coordinate) :: {shot_result, board}
+  def fire!(board, coordinate = {_x, _y}) do
+    if legal_shot?(board, coordinate) do
       new_grid = Grid.update_at(board.grid, coordinate, fn(cell) ->
         %{cell | shot?: true}
       end)
-      %{board | grid: new_grid}
+      new_board = %{board | grid: new_grid}
+      {shot_result(new_board, coordinate), new_board}
     else
       raise IllegalMoveError
     end
@@ -112,7 +123,8 @@ defmodule Battleship.Board do
   @spec rapid_fire!(board, [coordinate]) :: board
   def rapid_fire!(board, coordinates) when is_list(coordinates) do
     Enum.reduce(coordinates, board, fn({x, y}, acc) ->
-      fire!(acc, {x, y})
+      {_, new_board} = fire!(acc, {x, y})
+      new_board
     end)
   end
 
@@ -120,7 +132,7 @@ defmodule Battleship.Board do
   A list of the ships remaining on the `board`, given as a list of numbers
   representing their lengths, longest first.
   """
-  @spec remaining_ships(board) :: Battleship.Game.fleet
+  @spec remaining_ships(board) :: Battleship.Game.fleet_spec
   def remaining_ships(board) do
     result = Enum.reduce(board.fleet, [], fn(ship, acc) ->
       if ship_sunk?(board, ship) do
@@ -180,6 +192,26 @@ defmodule Battleship.Board do
         :across -> {x + n, y}
         :down -> {x, y + n}
       end
+    end)
+  end
+
+  defp shot_result(board, shot) do
+    cell = Grid.fetch!(board.grid, shot)
+    if cell.occupied? do
+      {_, _, length, _} = ship = find_ship(board, shot)
+      if ship_sunk?(board, ship) do
+        {:sunk, length}
+      else
+        :hit
+      end
+    else
+      :miss
+    end
+  end
+
+  defp find_ship(board, coordinate) do
+    Enum.find(board.fleet, fn(ship) ->
+      Enum.member?(ship_coordinates(ship), coordinate)
     end)
   end
 end

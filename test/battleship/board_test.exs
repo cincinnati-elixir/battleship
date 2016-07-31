@@ -65,18 +65,31 @@ defmodule BoardTest do
     assert {:error, _} = Board.place_ships(context.empty_board, fleet)
   end
 
+  test "shot result of a miss", context do
+    assert {:miss, _} = Board.fire!(context.board, {9,9})
+  end
+
+  test "shot result of a hit", context do
+    assert {:hit, _} = Board.fire!(context.board, {0,0})
+  end
+
+  test "shot result of a hit that sinks a ship", context do
+    assert {:hit, board} = Board.fire!(context.board, {0,4})
+    assert {{:sunk, 2}, _} = Board.fire!(board, {1,4})
+  end
+
   test "initial status is all unknown", context do
     assert Grid.to_list(initial_status) == Board.status(context.empty_board)
   end
 
   test "status after one hit", context do
-    board = Board.fire!(context.board, {1,4})
+    {:hit, board} = Board.fire!(context.board, {1,4})
     expected = Grid.replace_at(initial_status, {1,4}, :hit)
     assert Grid.to_list(expected) == Board.status(board)
   end
 
   test "status after one miss", context do
-    board = Board.fire!(context.board, {2,4})
+    {:miss, board} = Board.fire!(context.board, {2,4})
     expected = Grid.replace_at(initial_status, {2,4}, :miss)
     assert Grid.to_list(expected) == Board.status(board)
   end
@@ -113,6 +126,21 @@ defmodule BoardTest do
 
     assert Grid.to_list(expected) == Board.status(board)
     assert Board.all_sunk?(board)
+  end
+
+  test "legal_shot? with good coordinates", context do
+    assert Board.legal_shot?(context.board, {0,0})
+    assert Board.legal_shot?(context.board, {9,9})
+  end
+
+  test "legal_shot? with invalid coordinates", context do
+    assert not Board.legal_shot?(context.board, {-1,0})
+    assert not Board.legal_shot?(context.board, {10,9})
+  end
+
+  test "legal_shot? with things that are not actually coordinates", context do
+    assert not Board.legal_shot?(context.board, nil)
+    assert not Board.legal_shot?(context.board, [0,0])
   end
 
   test "remaining_ships in initial state", context do
