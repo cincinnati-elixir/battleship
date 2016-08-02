@@ -92,7 +92,7 @@ The console runner
 
 A console runner is provided. It can be started using:
 
-    mix run bin/play_game.exs Battleship.Player.Random Battleship.Player.Linear
+    mix run players/example/linear.exs players/example/random.exs
 
 Yielding a game like the following:
 
@@ -121,6 +121,6 @@ returned from the `name` message handler so that it matches your player name.
 You can test your player implementation against one of the example players as
 follows:
 
-    mix run bin/play_game.exs Battleship.Player.Random Battleship.Player.MyPlayer
+    mix run players/example/linear.exs players/cincinnati-elixir/my_player.exs
 
-(Where `Battleship.Player.MyPlayer` is the name of your player module.)
+(Where my_player.exs is the file that contains your player implementation.)

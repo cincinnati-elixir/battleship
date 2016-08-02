@@ -12,6 +12,12 @@ defmodule Battleship.PlayerProxy do
   end
 
   defp call_player(player, message) do
-    GenServer.call(player, message, 2000)
+    try do
+      result = GenServer.call(player, message, 2000)
+      {:ok, result}
+    rescue
+      error ->
+        {:error, error}
+    end
   end
 end

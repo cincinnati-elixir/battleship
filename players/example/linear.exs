@@ -1,12 +1,9 @@
 defmodule Battleship.Player.Linear do
   use GenServer
 
-  def start_link do
-    GenServer.start_link(__MODULE__, [])
-  end
-
   def init(_arg) do
-    {:ok, %{grid: Grid.new(10), last_shot: -1}}
+    state = %{grid: Grid.new(10), last_shot: -1}
+    {:ok, state}
   end
 
   def handle_call(:name, _from, state) do
@@ -27,8 +24,10 @@ defmodule Battleship.Player.Linear do
 
   def handle_call({:take_turn, _tracking_board, _remaining_ships}, _from, state) do
     shot_index = state.last_shot + 1
+    if shot_index >= 11, do: exit(:boom)
     shot_coordinate = Grid.index_to_coordinate(state.grid, shot_index)
     new_state = %{state | last_shot: shot_index}
+
     {:reply, shot_coordinate, new_state}
   end
 end

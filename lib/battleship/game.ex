@@ -56,11 +56,12 @@ defmodule Battleship.Game do
   def init([players, options]) do
     opts = Keyword.merge(@default_options, options) |> Enum.into(%{})
     [player1, player2] = Enum.map(players, fn(player) ->
+      {:ok, name} = PlayerProxy.name(player)
       board = Board.new(opts.board_size, opts.fleet_spec)
       %{
         ref: make_ref(),
         pid: player,
-        name: PlayerProxy.name(player),
+        name: name,
         board: board,
         remaining_ships: Board.remaining_ships(board)
       }
@@ -70,7 +71,8 @@ defmodule Battleship.Game do
       player1: player1,
       player2: player2,
       winner: nil,
-      turn: 0
+      turn: 0,
+      game_over: false
     })
 
     {:ok, state}
@@ -98,11 +100,9 @@ defmodule Battleship.Game do
   defp setup_game(state) do
     p1 = state.player1
     p2 = state.player2
-    p1_ships = PlayerProxy.new_game(p1.pid)
-    p2_ships = PlayerProxy.new_game(p2.pid)
 
-    {p1_ok, p1_result} = Board.place_ships(p1.board, p1_ships)
-    {p2_ok, p2_result} = Board.place_ships(p2.board, p2_ships)
+    {p1_ok, p1_result} = new_game(p1)
+    {p2_ok, p2_result} = new_game(p2)
     p1_good = (p1_ok == :ok)
     p2_good = (p2_ok == :ok)
 
@@ -121,42 +121,22 @@ defmodule Battleship.Game do
     end
   end
 
+  defp new_game(player) do
+    case PlayerProxy.new_game(player.pid) do
+      {:ok, ships} ->
+        Board.place_ships(player.board, ships)
+      error ->
+        error
+    end
+  end
+
   defp tick(state) do
-    turn = state.turn
-    {player_key, opponent_key} = player_keys_for_turn(turn)
+    {player_key, opponent_key} = player_keys_for_turn(state.turn)
     player = state[player_key]
     opponent = state[opponent_key]
 
-    coordinate = get_player_move(player.pid, opponent.board)
-
-    if Board.legal_shot?(opponent.board, coordinate) do
-      {shot_result, new_board} = Board.fire!(opponent.board, coordinate)
-      winner = if Board.all_sunk?(new_board), do: player, else: nil
-
-      move_info = %{
-        by: player.name,
-        target: coordinate,
-        result: shot_result
-      }
-      new_state =
-        %{state |
-          turn: next_turn(turn),
-          winner: winner
-        }
-        |> put_in([opponent_key, :board], new_board)
-        |> put_in([opponent_key, :remaining_ships], Board.remaining_ships(new_board))
-
-      notify(state.event_manager,
-             :move,
-             {move_info, [new_state.player1, new_state.player2]})
-
-      new_state
-    else
-      notify(state.event_manager,
-             :illegal_move,
-             %{by: player.name, target: coordinate})
-      %{state | winner: opponent}
-    end
+    handle_player_turn(state, player, opponent, opponent_key,
+                       get_player_move(player.pid, opponent.board))
 
   end
 
@@ -176,6 +156,41 @@ defmodule Battleship.Game do
 
   defp schedule_tick(time) do
     Process.send_after(self, :tick, time)
+  end
+
+  defp handle_player_turn(state, player, opponent, _opponent_key, {:error, error}) do
+    game_over_reason = "#{player.name} crashed: #{error}"
+    %{state | game_over: game_over_reason, winner: opponent}
+  end
+  defp handle_player_turn(state, player, opponent, opponent_key, {:ok, coordinate}) do
+    if Board.legal_shot?(opponent.board, coordinate) do
+      {shot_result, new_board} = Board.fire!(opponent.board, coordinate)
+
+      move_info = %{
+        by: player.name,
+        target: coordinate,
+        result: shot_result
+      }
+      new_state =
+        %{state | turn: next_turn(state.turn)}
+        |> put_in([opponent_key, :board], new_board)
+        |> put_in([opponent_key, :remaining_ships], Board.remaining_ships(new_board))
+        |> set_winner(Board.all_sunk?(new_board), player)
+
+      notify(state.event_manager, :move,
+             {move_info, [new_state.player1, new_state.player2]})
+
+      new_state
+    else
+      notify(state.event_manager, :illegal_move,
+             %{by: player.name, target: coordinate})
+      %{state | winner: opponent}
+    end
+  end
+
+  defp set_winner(state, false, _player), do: state
+  defp set_winner(state, true, player) do
+    %{state | game_over: true, winner: player}
   end
 
   # Returns a tuple with the player whose turn it is as the first element and

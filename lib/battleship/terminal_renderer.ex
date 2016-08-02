@@ -31,6 +31,7 @@ defmodule Battleship.TerminalRenderer do
   def handle_event({:move, {move_info, game_state}}, game_over_listener) do
     [player1, player2] = game_state
     render(player1, player2)
+    speak_result(move_info.result)
     {:ok, game_over_listener}
   end
 
@@ -79,4 +80,13 @@ defmodule Battleship.TerminalRenderer do
   defp print(message) do
     IO.puts(Process.group_leader, message)
   end
+
+  defp speak_result({:sunk, 5}) do
+    try do
+      System.cmd("say", ["You sunk my battleship"])
+    rescue
+      e -> :no_say_command
+    end
+  end
+  defp speak_result(_), do: :ok
 end
