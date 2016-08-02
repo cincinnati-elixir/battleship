@@ -1,1 +1,2 @@
-%{"dialyxir": {:hex, :dialyxir, "0.3.5", "eaba092549e044c76f83165978979f60110dc58dd5b92fd952bf2312f64e9b14", [:mix], []}}
+%{"dialyxir": {:hex, :dialyxir, "0.3.5", "eaba092549e044c76f83165978979f60110dc58dd5b92fd952bf2312f64e9b14", [:mix], []},
+  "dye": {:hex, :dye, "0.4.1", "e8d4b548fd17b441ebaaa53c823c29026bd17704bc9057304f15befb7e180df3", [:mix], []}}

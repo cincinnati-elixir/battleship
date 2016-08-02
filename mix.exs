@@ -28,6 +28,9 @@ defmodule Battleship.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:dialyxir, "~> 0.3.5", only: [:dev]}]
+    [
+      {:dialyxir, "~> 0.3.5", only: [:dev]},
+      {:dye, "~> 0.4.1"}
+    ]
   end
 end

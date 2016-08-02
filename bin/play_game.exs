@@ -8,10 +8,10 @@
 end)
 
 {:ok, game_pid} = Battleship.Game.Supervisor.start_game(player1, player2)
-Battleship.Game.start_game(game_pid, Battleship.SimpleGameEventHandler)
+Battleship.Game.start_game(game_pid, {Battleship.TerminalRenderer, self})
 
 receive do
-  Anything -> IO.puts("I got a message? #{Anything}")
+  :game_over -> :ok
 after
-  10_000 -> IO.puts("Quitting")
+  120_000 -> IO.puts("Game aborted")
 end

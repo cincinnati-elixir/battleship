@@ -21,7 +21,7 @@ defmodule Battleship.Game do
   @default_options [
     board_size: 10,
     fleet_spec: [5, 4, 3, 3, 2],
-    move_delay: 10,
+    move_delay: 100,
     round_delay: 1000
   ]
 
@@ -37,11 +37,18 @@ defmodule Battleship.Game do
 
   def start_game(game_server, event_handlers) when is_list(event_handlers) do
     {:ok, manager} = GenEvent.start_link
-    Enum.each(event_handlers, &(GenEvent.add_handler(manager, &1, self)))
+    Enum.each(event_handlers, &(add_event_handler(manager, &1)))
     GenServer.cast(game_server, {:start_game, manager})
   end
   def start_game(game_server, event_handler) do
     start_game(game_server, [event_handler])
+  end
+
+  defp add_event_handler(manager, {module, args}) do
+    GenEvent.add_handler(manager, module, args)
+  end
+  defp add_event_handler(manager, module) do
+    add_event_handler(manager, {module, self})
   end
 
   ## GenServer callbacks
