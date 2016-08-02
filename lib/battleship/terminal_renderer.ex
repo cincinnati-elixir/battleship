@@ -86,7 +86,7 @@ defmodule Battleship.TerminalRenderer do
     try do
       System.cmd("say", ["You sunk my battleship"])
     rescue
-      e -> :no_say_command
+      _error -> :no_say_command
     end
   end
   defp speak_result(_), do: :ok
