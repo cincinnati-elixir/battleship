@@ -58,6 +58,7 @@ defmodule Battleship.TerminalRenderer do
     IO.puts(io, "")
     render(io, player2.name, Board.status(player2.board), player2.remaining_ships)
     {_, output} = StringIO.contents(io)
+    StringIO.close(io)
     print(output)
   end
 
