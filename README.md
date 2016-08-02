@@ -112,7 +112,7 @@ game between the two provided example players:
 
     mix deps.get
     mix deps.compile
-    mix run bin/play_game.exs Battleship.Player.Random Battleship.Player.Linear
+    mix run bin/play_game.exs players/example/linear.exs players/example/random.exs
 
 Assuming that everything worked correctly you can now begin working on your own
 player implementation. You can copy one of the example player files to serve as
