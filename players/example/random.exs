@@ -1,6 +1,10 @@
 defmodule Battleship.Player.Random do
   use GenServer
 
+  def start_link do
+    GenServer.start_link(__MODULE__, [])
+  end
+
   def init(_arg) do
     # Use a list of all possible valid coordinates as our state. We will then
     # take one coordinate from the list randomly on each turn.

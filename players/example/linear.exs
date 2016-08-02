@@ -1,6 +1,10 @@
 defmodule Battleship.Player.Linear do
   use GenServer
 
+  def start_link do
+    GenServer.start_link(__MODULE__, [])
+  end
+
   def init(_arg) do
     state = %{grid: Grid.new(10), last_shot: -1}
     {:ok, state}

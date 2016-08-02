@@ -24,7 +24,9 @@ defmodule Battleship.Game.Supervisor do
   end
 
   defp start_player(player_module) when is_atom(player_module) do
-    {:ok, pid} = GenServer.start(player_module, [])
+    # {:ok, pid} = GenServer.start(player_module, [])
+    {:ok, player_sup} = Battleship.Player.Supervisor.start_link(player_module)
+    {:ok, pid} = Supervisor.start_child(player_sup, [])
     pid
   end
   defp start_player(player_file) when is_binary(player_file) do
