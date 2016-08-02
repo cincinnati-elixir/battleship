@@ -28,7 +28,7 @@ defmodule Battleship.Player.Linear do
 
   def handle_call({:take_turn, _tracking_board, _remaining_ships}, _from, state) do
     shot_index = state.last_shot + 1
-    if shot_index >= 11, do: exit(:boom)
+    # if shot_index >= 11, do: exit(:boom)
     shot_coordinate = Grid.index_to_coordinate(state.grid, shot_index)
     new_state = %{state | last_shot: shot_index}
 
