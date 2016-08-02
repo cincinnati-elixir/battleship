@@ -29,6 +29,7 @@ You lose if:
 ### Additional rules
 
 * The player will not have access to the game objects.
+* The player may use the provided `Grid` module as an implementation aid.
 * The judge’s decision is final.
 
 Implementation
@@ -93,7 +94,7 @@ A console runner is provided. It can be started using:
 
     mix run bin/play_game.exs Battleship.Player.Random Battleship.Player.Linear
 
-Yielding the following game:
+Yielding a game like the following:
 
 ![Example Game](http://assets.joingrouper.com/fight_club/battleship.gif)
 
@@ -102,23 +103,24 @@ in a corner and guesses at random (often wasting turns by repeating itself).
 `HumanPlayer` asks for input via the console.
 
 
-## Installation
+## Getting Started
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
+First make sure you have an up-to-date version of Elixir installed. Then you
+can fork and clone this repository to set up your own Battleship development
+enviroment. Make sure that everything is set up correctly by playing a sample
+game between the two provided example players:
 
-  1. Add `battleship` to your list of dependencies in `mix.exs`:
+    mix deps.get
+    mix deps.compile
+    mix run bin/play_game.exs Battleship.Player.Random Battleship.Player.Linear
 
-    ```elixir
-    def deps do
-      [{:battleship, "~> 0.1.0"}]
-    end
-    ```
+Assuming that everything worked correctly you can now begin working on your own
+player implementation. You can copy one of the example player files to serve as
+a starting point, but make sure you change both the module name and the string
+returned from the `name` message handler so that it matches your player name.
+You can test your player implementation against one of the example players as
+follows:
 
-  2. Ensure `battleship` is started before your application:
+    mix run bin/play_game.exs Battleship.Player.Random Battleship.Player.MyPlayer
 
-    ```elixir
-    def application do
-      [applications: [:battleship]]
-    end
-    ```
-
+(Where `Battleship.Player.MyPlayer` is the name of your player module.)
