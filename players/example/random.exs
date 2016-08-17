@@ -19,11 +19,11 @@ defmodule Battleship.Player.Random do
   def handle_call(:new_game, _from, state) do
     :random.seed(:erlang.now)
     fleet = [
-      {5, 9, 5, :across},
+      {1, 1, 5, :down},
       {6, 8, 4, :across},
-      {7, 7, 3, :across},
-      {7, 6, 3, :across},
-      {8, 5, 2, :across}
+      {3, 2, 3, :down},
+      {7, 2, 3, :across},
+      {2, 7, 2, :across}
     ]
     {:reply, fleet, state}
   end

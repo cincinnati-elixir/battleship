@@ -23,7 +23,8 @@ defmodule Battleship.TerminalRenderer do
   end
 
   def handle_event({:game_over, %{winner: player}}, game_over_listener) do
-    print("GAME OVER - #{player.name} wins!")
+    shot_count = length(player.shots)
+    print("GAME OVER - #{player.name} wins! (#{shot_count} moves)")
     send(game_over_listener, :game_over)
     {:ok, game_over_listener}
   end
@@ -31,7 +32,7 @@ defmodule Battleship.TerminalRenderer do
   def handle_event({:move, {move_info, game_state}}, game_over_listener) do
     [player1, player2] = game_state
     render(player1, player2)
-    speak_result(move_info.result)
+    # speak_result(move_info.result)
     {:ok, game_over_listener}
   end
 
@@ -45,11 +46,6 @@ defmodule Battleship.TerminalRenderer do
   defp icon(:unknown), do: ~s"· "
   defp icon(:hit), do: ~s"█▉"r
   defp icon(:miss), do: ~s"▒▒"c
-
-  defp render_ship(length) when length in 1..5 do
-    List.duplicate("█▉", length) |> Enum.join
-  end
-  defp render_ship(_), do: ""
 
   defp render(player1, player2) do
     {:ok, io} = StringIO.open("")
@@ -71,6 +67,11 @@ defmodule Battleship.TerminalRenderer do
       IO.puts(output, line)
     end)
   end
+
+  defp render_ship(length) when length in 1..5 do
+    List.duplicate("█▉", length) |> Enum.join
+  end
+  defp render_ship(_), do: ""
 
   defp render_row(row) do
     row

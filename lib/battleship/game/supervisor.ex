@@ -15,6 +15,12 @@ defmodule Battleship.Game.Supervisor do
     start_game(start_player(player1_module), start_player(player2_module))
   end
 
+  def start_tournament(player1_module, player2_module) do
+    p1 = start_player(player1_module)
+    p2 = start_player(player2_module)
+    start_game(start_player(player1_module), start_player(player2_module))
+  end
+
   def init(:ok) do
     children = [
       worker(Battleship.Game, [], restart: :temporary)
@@ -29,8 +35,13 @@ defmodule Battleship.Game.Supervisor do
     {:ok, pid} = Supervisor.start_child(player_sup, [])
     pid
   end
-  defp start_player(player_file) when is_binary(player_file) do
-    [{player_module, _code}] = Code.load_file(player_file)
+  defp start_player(player) when is_binary(player) do
+    player_module = if String.ends_with?(player, ".exs") do
+      [{player_module, _code}] = Code.load_file(player)
+      player_module
+    else
+      String.to_atom("Elixir." <> player)
+    end
     start_player(player_module)
   end
 end

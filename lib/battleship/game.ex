@@ -63,7 +63,8 @@ defmodule Battleship.Game do
         pid: player,
         name: name,
         board: board,
-        remaining_ships: Board.remaining_ships(board)
+        remaining_ships: Board.remaining_ships(board),
+        shots: []
       }
     end)
 
@@ -135,7 +136,7 @@ defmodule Battleship.Game do
     player = state[player_key]
     opponent = state[opponent_key]
 
-    handle_player_turn(state, player, opponent, opponent_key,
+    handle_player_turn(state, {player_key, player}, {opponent_key, opponent},
                        get_player_move(player.pid, opponent.board))
 
   end
@@ -158,11 +159,14 @@ defmodule Battleship.Game do
     Process.send_after(self, :tick, time)
   end
 
-  defp handle_player_turn(state, player, opponent, _opponent_key, {:error, error}) do
+  defp handle_player_turn(state, {_, player}, {_, opponent}, {:error, error}) do
     game_over_reason = "#{player.name} crashed: #{error}"
     %{state | game_over: game_over_reason, winner: opponent}
   end
-  defp handle_player_turn(state, player, opponent, opponent_key, {:ok, coordinate}) do
+  defp handle_player_turn(state,
+                          {player_key, player},
+                          {opponent_key, opponent},
+                          {:ok, coordinate}) do
     if Board.legal_shot?(opponent.board, coordinate) do
       {shot_result, new_board} = Board.fire!(opponent.board, coordinate)
 
@@ -173,6 +177,7 @@ defmodule Battleship.Game do
       }
       new_state =
         %{state | turn: next_turn(state.turn)}
+        |> update_in([player_key, :shots], &([coordinate|&1]))
         |> put_in([opponent_key, :board], new_board)
         |> put_in([opponent_key, :remaining_ships], Board.remaining_ships(new_board))
         |> set_winner(Board.all_sunk?(new_board), player)
