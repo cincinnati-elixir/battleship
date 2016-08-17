@@ -5,6 +5,7 @@ defmodule Battleship.Mixfile do
     [app: :battleship,
      version: "0.1.0",
      elixir: "~> 1.3",
+     elixirc_paths: ["lib", "players"],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps()]
@@ -29,8 +30,9 @@ defmodule Battleship.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
+      {:dye, "~> 0.4.1"},
       {:dialyxir, "~> 0.3.5", only: [:dev]},
-      {:dye, "~> 0.4.1"}
+      {:ex_doc, "~> 0.12", only: :dev}
     ]
   end
 end
