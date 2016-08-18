@@ -1,43 +1,47 @@
-defmodule Battleship.TerminalRenderer do
-  use GenEvent
-  use Dye
 
+defmodule Battleship.TerminalRenderer do
+  alias Experimental.GenStage
   alias Battleship.Board
 
-  ## GenEvent callbacks
+  use GenStage
+  use Dye
+
+  def start_link(game_over_listener) do
+    GenStage.start_link(__MODULE__, game_over_listener, name: __MODULE__)
+  end
 
   def init(game_over_listener) do
-    {:ok, game_over_listener}
+    {:consumer, game_over_listener, subscribe_to: [Battleship.Game.EventProducer] }
   end
 
-  def handle_event({:new_game, game_state}, game_over_listener) do
+  def handle_events([{:new_game, game_state}], _from, game_over_listener) do
     [player1, player2] = game_state
     render(player1, player2)
-    {:ok, game_over_listener}
+    {:noreply, [], game_over_listener}
   end
 
-  def handle_event({:game_over, :illegal_game}, game_over_listener) do
+  def handle_events([{:game_over, :illegal_game}], _from, game_over_listener) do
     print("GAME ERROR - both players disqualified")
     send(game_over_listener, :game_over)
-    {:ok, game_over_listener}
+    {:noreply, [], game_over_listener}
   end
 
-  def handle_event({:game_over, %{winner: player}}, game_over_listener) do
+  def handle_events([{:game_over, %{winner: player}}], _from, game_over_listener) do
     print("GAME OVER - #{player.name} wins!")
     send(game_over_listener, :game_over)
-    {:ok, game_over_listener}
+    {:noreply, [], game_over_listener}
   end
 
-  def handle_event({:move, {move_info, game_state}}, game_over_listener) do
+  def handle_events([{:move, {move_info, game_state}}], _from, game_over_listener) do
     [player1, player2] = game_state
     render(player1, player2)
     speak_result(move_info.result)
-    {:ok, game_over_listener}
+    {:noreply, [], game_over_listener}
   end
 
-  def handle_event({:illegal_move, move_info}, game_over_listener) do
+  def handle_events([{:illegal_move, move_info}], _from, game_over_listener) do
     print("ILLEGAL MOVE by #{move_info.by}: #{inspect move_info.target}")
-    {:ok, game_over_listener}
+    {:noreply, [], game_over_listener}
   end
 
   @reset "\e[2J\e[H"

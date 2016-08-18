@@ -36,19 +36,19 @@ defmodule Battleship.Game do
   end
 
   def start_game(game_server, event_handlers) when is_list(event_handlers) do
-    {:ok, manager} = GenEvent.start_link
-    Enum.each(event_handlers, &(add_event_handler(manager, &1)))
-    GenServer.cast(game_server, {:start_game, manager})
+    {:ok, _manager} = Battleship.Game.EventProducer.start_link
+    Enum.each(event_handlers, fn(module) -> start_consumer(module) end)
+    GenServer.cast(game_server, :start_game)
   end
   def start_game(game_server, event_handler) do
     start_game(game_server, [event_handler])
   end
 
-  defp add_event_handler(manager, {module, args}) do
-    GenEvent.add_handler(manager, module, args)
+  defp start_consumer({module, game_over_listener}) do
+    module.start_link(game_over_listener)
   end
-  defp add_event_handler(manager, module) do
-    add_event_handler(manager, {module, self})
+  defp start_consumer(module) do
+    start_consumer({module, self})
   end
 
   ## GenServer callbacks
@@ -84,9 +84,8 @@ defmodule Battleship.Game do
     new_state
   end
 
-  def handle_cast({:start_game, event_manager}, state) do
+  def handle_cast(:start_game, state) do
     state
-    |> Map.merge(%{event_manager: event_manager})
     |> setup_game
     |> handle_game_state
   end
@@ -108,7 +107,7 @@ defmodule Battleship.Game do
 
     cond do
       p1_good && p2_good ->   # Both players made valid fleet arrangement
-        notify(state.event_manager, :new_game, [p1, p2])
+        notify(:new_game, [p1, p2])
         state
         |> put_in([:player1, :board], p1_result)
         |> put_in([:player2, :board], p2_result)
@@ -146,10 +145,10 @@ defmodule Battleship.Game do
         schedule_tick(state.move_delay)
         {:noreply, state}
       :nobody ->
-        notify(state.event_manager, :game_over, :illegal_game)
+        notify(:game_over, :illegal_game)
         {:stop, :normal, state}
       player ->
-        notify(state.event_manager, :game_over, %{winner: player})
+        notify(:game_over, %{winner: player})
         {:stop, :normal, state}
     end
   end
@@ -177,12 +176,12 @@ defmodule Battleship.Game do
         |> put_in([opponent_key, :remaining_ships], Board.remaining_ships(new_board))
         |> set_winner(Board.all_sunk?(new_board), player)
 
-      notify(state.event_manager, :move,
+      notify(:move,
              {move_info, [new_state.player1, new_state.player2]})
 
       new_state
     else
-      notify(state.event_manager, :illegal_move,
+      notify(:illegal_move,
              %{by: player.name, target: coordinate})
       %{state | winner: opponent}
     end
@@ -212,8 +211,7 @@ defmodule Battleship.Game do
     rem(turn + 1, 2)
   end
 
-  defp notify(nil, _event, _data), do: nil
-  defp notify(event_manager, event, data) do
-    GenEvent.notify(event_manager, {event, data})
+  defp notify(event, data) do
+    Battleship.Game.EventProducer.sync_notify({event, data})
   end
 end

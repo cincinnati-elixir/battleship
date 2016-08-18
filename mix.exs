@@ -30,6 +30,7 @@ defmodule Battleship.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
+      {:gen_stage, "~> 0.5.0"},
       {:dye, "~> 0.4.1"},
       {:dialyxir, "~> 0.3.5", only: [:dev]},
       {:ex_doc, "~> 0.12", only: :dev}
