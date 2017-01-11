@@ -8,6 +8,7 @@ defmodule Battleship.Mixfile do
      elixirc_paths: ["lib", "players"],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     escript: escript(),
      deps: deps()]
   end
 
@@ -34,5 +35,9 @@ defmodule Battleship.Mixfile do
       {:dialyxir, "~> 0.3.5", only: [:dev]},
       {:ex_doc, "~> 0.12", only: :dev}
     ]
+  end
+
+  def escript do
+    [main_module: Battleship.CLI]
   end
 end
