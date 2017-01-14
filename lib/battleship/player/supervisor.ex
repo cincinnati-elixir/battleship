@@ -1,14 +1,40 @@
 defmodule Battleship.Player.Supervisor do
   use Supervisor
 
-  @name __MODULE__
+  @type player_id :: binary
+  @type player_module :: module | binary
 
-  def start_link(player_module) do
-    Supervisor.start_link(__MODULE__, player_module)
+  def start_link(restart \\ :transient) do
+    Supervisor.start_link(__MODULE__, [restart])
   end
 
-  def init(player_module) do
-    children = [worker(player_module, [], restart: :temporary)]
+  def init([restart]) do
+    children = [worker(Battleship.Player, [], restart: restart)]
     supervise(children, strategy: :simple_one_for_one)
+  end
+
+  @spec start_player(pid, player_module) :: player_id
+  def start_player(supervisor_pid, player_module) when is_atom(player_module) do
+    player_id = generate_player_id()
+    {:ok, _player_pid} = Supervisor.start_child(supervisor_pid, [player_module, player_id])
+    player_id
+  end
+  def start_player(supervisor_pid, player_module) when is_binary(player_module) do
+    player_module = if String.ends_with?(player_module, ".exs") do
+      [{player_module, _code}] = Code.load_file(player_module)
+      player_module
+    else
+      String.to_atom("Elixir." <> player_module)
+    end
+    start_player(supervisor_pid, player_module)
+  end
+
+  @spec start_players(pid, [player_module]) :: [player_id]
+  def start_players(supervisor_pid, player_modules) when is_list(player_modules) do
+    Enum.map(player_modules, &(start_player(supervisor_pid, &1)))
+  end
+
+  defp generate_player_id do
+    UUID.uuid1()
   end
 end

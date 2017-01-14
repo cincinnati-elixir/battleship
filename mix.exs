@@ -32,6 +32,8 @@ defmodule Battleship.Mixfile do
   defp deps do
     [
       {:dye, "~> 0.4.1"},
+      {:uuid, "~> 1.1"},
+      {:gproc, "~> 0.6.1"},
       {:dialyxir, "~> 0.3.5", only: [:dev]},
       {:ex_doc, "~> 0.12", only: :dev}
     ]

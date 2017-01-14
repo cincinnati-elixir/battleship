@@ -1,7 +1,7 @@
 defmodule Battleship.Game do
   use GenServer
   alias Battleship.Board
-  alias Battleship.PlayerProxy
+  alias Battleship.Player
 
   @type ship_length :: 2..5
 
@@ -32,23 +32,7 @@ defmodule Battleship.Game do
   end
 
   def start_game(game_server) do
-    GenServer.call(game_server, :start_game)
-  end
-
-  def start_game(game_server, event_handlers) when is_list(event_handlers) do
-    {:ok, manager} = GenEvent.start_link
-    Enum.each(event_handlers, &(add_event_handler(manager, &1)))
-    GenServer.cast(game_server, {:start_game, manager})
-  end
-  def start_game(game_server, event_handler) do
-    start_game(game_server, [event_handler])
-  end
-
-  defp add_event_handler(manager, {module, args}) do
-    GenEvent.add_handler(manager, module, args)
-  end
-  defp add_event_handler(manager, module) do
-    add_event_handler(manager, {module, self})
+    GenServer.cast(game_server, :start_game)
   end
 
   ## GenServer callbacks
@@ -56,10 +40,9 @@ defmodule Battleship.Game do
   def init([players, options]) do
     opts = Keyword.merge(@default_options, options) |> Enum.into(%{})
     [player1, player2] = Enum.map(players, fn(player) ->
-      {:ok, name} = PlayerProxy.name(player)
+      {:ok, name} = Player.name(player)
       board = Board.new(opts.board_size, opts.fleet_spec)
       %{
-        ref: make_ref(),
         pid: player,
         name: name,
         board: board,
@@ -85,9 +68,8 @@ defmodule Battleship.Game do
     new_state
   end
 
-  def handle_cast({:start_game, event_manager}, state) do
+  def handle_cast(:start_game, state) do
     state
-    |> Map.merge(%{event_manager: event_manager})
     |> setup_game
     |> handle_game_state
   end
@@ -123,7 +105,7 @@ defmodule Battleship.Game do
   end
 
   defp new_game(player) do
-    case PlayerProxy.new_game(player.pid) do
+    case Player.new_game(player.pid) do
       {:ok, ships} ->
         Board.place_ships(player.board, ships)
       error ->
@@ -160,7 +142,7 @@ defmodule Battleship.Game do
   end
 
   defp handle_player_turn(state, {_, player}, {_, opponent}, {:error, error}) do
-    game_over_reason = "#{player.name} crashed: #{error}"
+    game_over_reason = "#{player.name} crashed."
     %{state | game_over: game_over_reason, winner: opponent}
   end
   defp handle_player_turn(state,
@@ -210,7 +192,7 @@ defmodule Battleship.Game do
   defp get_player_move(player, opponent_board) do
     board_status = Board.status(opponent_board)
     remaining_ships = Board.remaining_ships(opponent_board)
-    PlayerProxy.take_turn(player, board_status, remaining_ships)
+    Player.take_turn(player, board_status, remaining_ships)
   end
 
   defp next_turn(turn) do

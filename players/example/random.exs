@@ -6,17 +6,14 @@ defmodule Battleship.Player.Random do
   end
 
   def init(_arg) do
-    # Use a list of all possible valid coordinates as our state. We will then
-    # take one coordinate from the list randomly on each turn.
-    all_coordinates = for x <- 0..9, y <- 0..9, do: {x, y}
-    {:ok, all_coordinates}
+    {:ok, []}
   end
 
   def handle_call(:name, _from, state) do
     {:reply, "Random", state}
   end
 
-  def handle_call(:new_game, _from, state) do
+  def handle_call(:new_game, _from, _state) do
     :random.seed(:erlang.now)
     fleet = [
       {1, 1, 5, :down},
@@ -25,7 +22,10 @@ defmodule Battleship.Player.Random do
       {7, 2, 3, :across},
       {2, 7, 2, :across}
     ]
-    {:reply, fleet, state}
+    # Use a list of all possible valid coordinates as our state. We will then
+    # take one coordinate from the list randomly on each turn.
+    all_coordinates = for x <- 0..9, y <- 0..9, do: {x, y}
+    {:reply, fleet, all_coordinates}
   end
 
   def handle_call({:take_turn, _tracking_board, _remaining_ships}, _from,

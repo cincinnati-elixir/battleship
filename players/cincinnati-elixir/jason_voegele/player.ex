@@ -1,17 +1,13 @@
 defmodule JasonVoegele.Player do
   use GenServer
 
-  def start_link do
-    GenServer.start_link(__MODULE__, [])
-  end
-
   @shot_selection_strategy JasonVoegele.ShotSelectionStrategy.HuntAndTarget
 
   defstruct shots: [],
             remaining_ships: [5, 4, 3, 3, 2],
             select_shot: nil
 
-  def init(_) do
+  def init do
     state = %__MODULE__{}
     {:ok, state}
   end

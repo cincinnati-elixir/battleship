@@ -20,8 +20,8 @@ defmodule Battleship.CLI do
   defp execute(["start-game" | args], options) do
     start_game(args)
   end
-  defp execute(["start-tournament" | args], options) do
-    start_tournament(args)
+  defp execute(["start-match" | args], options) do
+    start_match(args)
   end
   defp execute(_args, _options) do
     IO.puts(:stderr, usage())
@@ -33,20 +33,26 @@ defmodule Battleship.CLI do
 
   defp start_game([player1, player2]) do
     IO.puts("Starting game with #{IO.inspect player1} and #{IO.inspect player2}")
-    {:ok, game_pid} = Battleship.Game.Supervisor.start_game(player1, player2)
-    Battleship.Game.start_game(game_pid, {Battleship.TerminalRenderer, self})
-    wait_for_game_over()
+    {:ok, game_pid} = Battleship.Game.Supervisor.start_game(player1,
+                                                            player2,
+                                                            {Battleship.TerminalRenderer, self})
+    Battleship.Game.start_game(game_pid)
+    wait_for_signal(:game_over)
   end
   defp start_game(_invalid_args) do
     IO.puts(:stderr, "Usage: battleship start-game <Player1 Module> <Player2 Module>")
   end
 
-  defp start_tournament([player1, player2]) do
-    IO.puts("Starting tournament with #{IO.inspect player1} and #{IO.inspect player2}")
-    Battleship.Game.Supervisor.start_tournament(player1, player2)
+  defp start_match([player1, player2]) do
+    IO.puts("Starting match with #{IO.inspect player1} and #{IO.inspect player2}")
+    Battleship.Game.Supervisor.start_match(player1,
+                                                player2,
+                                                10,
+                                                {Battleship.MatchEventHandler, self})
+    wait_for_signal(:match_over)
   end
-  defp start_tournament(_invalid_args) do
-    IO.puts(:stderr, "Usage: battleship start-tournament <Player1 Module> <Player2 Module>")
+  defp start_match(_invalid_args) do
+    IO.puts(:stderr, "Usage: battleship start-match <Player1 Module> <Player2 Module>")
   end
 
   defp start_player([player_module_arg]) do
@@ -60,9 +66,9 @@ defmodule Battleship.CLI do
     IO.puts(:stderr, "Usage: battleship start-player <Player Module>")
   end
 
-  defp wait_for_game_over(timeout \\ 60_000) do
+  defp wait_for_signal(signal, timeout \\ 60_000) do
     receive do
-      :game_over -> :ok
+      signal -> :ok
     after
       timeout -> IO.puts("Game aborted")
     end
