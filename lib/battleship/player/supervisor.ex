@@ -10,7 +10,11 @@ defmodule Battleship.Player.Supervisor do
 
   def init([restart]) do
     children = [worker(Battleship.Player, [], restart: restart)]
-    supervise(children, strategy: :simple_one_for_one)
+    # We don't want an errant player implementation to crash the supervisor
+    # so set `max_restarts` to a high value and allow the supervisor to restart
+    # the player process as much as needed. If a player process crashes that
+    # causes the current game to be finished with the opposing player as the winner.
+    supervise(children, strategy: :simple_one_for_one, max_restarts: 1000)
   end
 
   @spec start_player(pid, player_module) :: player_id

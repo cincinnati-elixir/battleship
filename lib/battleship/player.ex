@@ -14,29 +14,38 @@ defmodule Battleship.Player do
   # @callback take_turn(pid, Battleship.Game.state, [Battleship.Game.ship]) ::
   #   Battleship.Board.coordinate
 
-  def start_link(player_module, reg_name) do
-    GenServer.start_link(player_module, [], name: via(reg_name))
+  def start_link(player_module, player_id) do
+    GenServer.start_link(player_module, [], name: registered_name(player_id))
   end
 
-  def via(reg_name) do
-    via = {:via, Registry, {Battleship.Player.Registry, reg_name}}
+  def monitor(player_id) do
+    case :global.whereis_name(player_id) do
+      :undefined ->
+        nil
+      pid ->
+        Process.monitor(pid)
+    end
   end
 
-  def name(player) do
-    call_player(player, :name)
+  def registered_name(player_id) do
+    {:global, player_id}
   end
 
-  def new_game(player) do
-    call_player(player, :new_game)
+  def name(player_id) do
+    call_player(player_id, :name)
   end
 
-  def take_turn(player, board_status, remaining_ships) do
-    call_player(player, {:take_turn, board_status, remaining_ships})
+  def new_game(player_id) do
+    call_player(player_id, :new_game)
   end
 
-  defp call_player(player, message) do
+  def take_turn(player_id, board_status, remaining_ships) do
+    call_player(player_id, {:take_turn, board_status, remaining_ships})
+  end
+
+  defp call_player(player_id, message) do
     try do
-      result = GenServer.call(via(player), message, 2000)
+      result = GenServer.call(registered_name(player_id), message, 2000)
       {:ok, result}
     catch
       :exit, reason ->

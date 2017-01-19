@@ -47,7 +47,7 @@ defmodule Battleship.CLI do
     IO.puts("Starting match with #{IO.inspect player1} and #{IO.inspect player2}")
     Battleship.Game.Supervisor.start_match(player1,
                                                 player2,
-                                                10,
+                                                100,
                                                 {Battleship.MatchEventHandler, self})
     wait_for_signal(:match_over)
   end

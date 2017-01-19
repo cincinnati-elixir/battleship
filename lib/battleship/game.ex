@@ -37,23 +37,11 @@ defmodule Battleship.Game do
 
   ## GenServer callbacks
 
-  def init([players, options]) do
+  def init([[player1, player2], options]) do
     opts = Keyword.merge(@default_options, options) |> Enum.into(%{})
-    [player1, player2] = Enum.map(players, fn(player) ->
-      {:ok, name} = Player.name(player)
-      board = Board.new(opts.board_size, opts.fleet_spec)
-      %{
-        pid: player,
-        name: name,
-        board: board,
-        remaining_ships: Board.remaining_ships(board),
-        shots: []
-      }
-    end)
-
     state = Map.merge(opts, %{
-      player1: player1,
-      player2: player2,
+      player1_pid: player1,
+      player2_pid: player2,
       winner: nil,
       turn: 0,
       game_over: false
@@ -77,10 +65,27 @@ defmodule Battleship.Game do
   def handle_info(:tick, state) do
     state |> tick |> handle_game_state
   end
+  def handle_info({:DOWN, ref, :process, _pid, _reason}, state) do
+    IO.puts(Process.group_leader, "***** Got DOWN message:")
+    IO.inspect(ref)
+    p1_ref = state.player1.monitor_ref
+    p2_ref = state.player2.monitor_ref
+    winner = case ref do
+      p1_ref ->
+        state.player2
+      p2_ref ->
+        state.player1
+    end
+    handle_game_state(%{state|game_over: true, winner: winner})
+  end
+  def handle_info(_msg, state) do
+    {:noreply, state}
+  end
 
   ## Internal functions
 
   defp setup_game(state) do
+    state = setup_players(state)
     p1 = state.player1
     p2 = state.player2
 
@@ -93,6 +98,8 @@ defmodule Battleship.Game do
       p1_good && p2_good ->   # Both players made valid fleet arrangement
         notify(state.event_manager, :new_game, [p1, p2])
         state
+        |> put_in([:player1, :monitor_ref], Battleship.Player.monitor(p1.pid))
+        |> put_in([:player2, :monitor_ref], Battleship.Player.monitor(p2.pid))
         |> put_in([:player1, :board], p1_result)
         |> put_in([:player2, :board], p2_result)
       !p1_good && p2_good ->  # Player 1 loses
@@ -104,6 +111,30 @@ defmodule Battleship.Game do
     end
   end
 
+  defp setup_players(state) do
+    game_opts = Map.take(state, [:board_size, :fleet_spec])
+    state
+    |> Map.put(:player1, create_player(state.player1_pid, game_opts))
+    |> Map.put(:player2, create_player(state.player2_pid, game_opts))
+  end
+
+  defp create_player(player_pid, opts) do
+    case Player.name(player_pid) do
+      {:ok, name} ->
+        board = Board.new(opts.board_size, opts.fleet_spec)
+        %{
+          pid: player_pid,
+          name: name,
+          board: board,
+          remaining_ships: Board.remaining_ships(board),
+          shots: []
+        }
+      {:error, _} ->
+        :error
+    end
+  end
+
+  defp new_game(:error), do: {:error, :invalid_player}
   defp new_game(player) do
     case Player.new_game(player.pid) do
       {:ok, ships} ->
