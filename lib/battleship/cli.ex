@@ -68,7 +68,7 @@ defmodule Battleship.CLI do
 
   defp wait_for_signal(signal, timeout \\ 60_000) do
     receive do
-      signal -> :ok
+      ^signal -> :ok
     after
       timeout -> IO.puts("Game aborted")
     end

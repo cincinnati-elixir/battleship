@@ -71,9 +71,9 @@ defmodule Battleship.Game do
     p1_ref = state.player1.monitor_ref
     p2_ref = state.player2.monitor_ref
     winner = case ref do
-      p1_ref ->
+      ^p1_ref ->
         state.player2
-      p2_ref ->
+      ^p2_ref ->
         state.player1
     end
     handle_game_state(%{state|game_over: true, winner: winner})
