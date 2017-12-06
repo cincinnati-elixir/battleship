@@ -4,7 +4,7 @@ defmodule Battleship.Mixfile do
   def project do
     [app: :battleship,
      version: "0.1.0",
-     elixir: "~> 1.3",
+     elixir: "~> 1.5",
      elixirc_paths: ["lib", "players"],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -34,8 +34,8 @@ defmodule Battleship.Mixfile do
       {:dye, "~> 0.4.1"},
       {:uuid, "~> 1.1"},
       {:gproc, "~> 0.6.1"},
-      {:dialyxir, "~> 0.3.5", only: [:dev]},
-      {:ex_doc, "~> 0.12", only: :dev}
+      {:dialyxir, "~> 0.5.1", only: [:dev]},
+      {:ex_doc, "~> 0.18.1", only: :dev}
     ]
   end
 
