@@ -22,6 +22,7 @@ defmodule Battleship.Player do
     case :global.whereis_name(player_id) do
       :undefined ->
         nil
+
       pid ->
         Process.monitor(pid)
     end
@@ -50,6 +51,7 @@ defmodule Battleship.Player do
     catch
       :exit, reason ->
         {:error, reason}
+
       error ->
         {:error, error}
     end

@@ -10,8 +10,8 @@ defmodule Grid do
 
   defstruct size: 0, contents: []
 
-  @type element :: Enum.element
-  @type default :: Enum.default
+  @type element :: Enum.element()
+  @type default :: Enum.default()
 
   @typedoc """
   A coordinate identifying a cell in the grid.
@@ -24,9 +24,9 @@ defmodule Grid do
   @type index :: non_neg_integer
 
   @opaque t :: %Grid{
-    size: non_neg_integer,
-    contents: [[element]]
-  }
+            size: non_neg_integer,
+            contents: [[element]]
+          }
 
   @doc """
   Creates a square grid of the given `size` with each cell containing the
@@ -60,8 +60,9 @@ defmodule Grid do
 
   defp square?(list) when is_list(list) do
     size = length(list)
-    Enum.all?(list, fn(row) -> is_list(row) && length(row) == size end)
+    Enum.all?(list, fn row -> is_list(row) && length(row) == size end)
   end
+
   defp square?(_not_a_list), do: false
 
   @doc """
@@ -79,6 +80,7 @@ defmodule Grid do
     case squared(flat_list) do
       :error ->
         {:error, "List cannot be made into a square grid"}
+
       {size, chunked} ->
         {:ok, %Grid{size: size, contents: chunked}}
     end
@@ -87,6 +89,7 @@ defmodule Grid do
   defp squared(flat_list) do
     sqrt = round(:math.sqrt(length(flat_list)))
     chunked = Enum.chunk(flat_list, sqrt)
+
     if flat_list == List.flatten(chunked) do
       {sqrt, chunked}
     else
@@ -133,7 +136,7 @@ defmodule Grid do
   """
   @spec on?(t, coordinate) :: boolean
   def on?(%Grid{size: s}, {x, y}) do
-    size = 0..s-1
+    size = 0..(s - 1)
     x in size && y in size
   end
 
@@ -192,6 +195,7 @@ defmodule Grid do
   """
   @spec fetch!(t, coordinate) :: element
   def fetch!(grid, coordinate)
+
   def fetch!(%Grid{contents: grid}, {x, y}) do
     grid |> Enum.fetch!(y) |> Enum.fetch!(x)
   end
@@ -204,7 +208,7 @@ defmodule Grid do
   """
   @spec replace_at(t, coordinate, element) :: t
   def replace_at(grid, {x, y}, value) do
-    update_at(grid, {x, y}, fn(_) -> value end)
+    update_at(grid, {x, y}, fn _ -> value end)
   end
 
   @doc """
@@ -215,10 +219,12 @@ defmodule Grid do
   def update_at(grid, {x, y}, function) do
     assert_on!(grid, {x, y})
     contents = grid.contents
+
     new_row =
       contents
       |> Enum.at(y)
       |> List.update_at(x, function)
+
     %{grid | contents: List.replace_at(contents, y, new_row)}
   end
 
@@ -235,8 +241,8 @@ defmodule Grid do
   @spec with_coordinate(t) :: [{element, coordinate}]
   def with_coordinate(%Grid{size: size} = grid) do
     grid
-    |> Enum.with_index
-    |> Enum.map(fn({e, i}) -> {e, index_to_coordinate(size, i)} end)
+    |> Enum.with_index()
+    |> Enum.map(fn {e, i} -> {e, index_to_coordinate(size, i)} end)
   end
 
   @doc """
@@ -248,16 +254,19 @@ defmodule Grid do
   passed the element as the first argument and the second argument is the
   coordinate in `{x, y}` form.
   """
-  @spec map(t, (element -> element) | ((element, coordinate) -> element)) :: t
+  @spec map(t, (element -> element) | (element, coordinate -> element)) :: t
   def map(grid, fun) do
     arity = :erlang.fun_info(fun)[:arity]
-    new_contents = if arity == 2 do
-      Enum.map(with_coordinate(grid), fn({elem, coordinate}) ->
-        fun.(elem, coordinate)
-      end)
-    else
-      Enum.map(to_flat_list(grid), fun)
-    end
+
+    new_contents =
+      if arity == 2 do
+        Enum.map(with_coordinate(grid), fn {elem, coordinate} ->
+          fun.(elem, coordinate)
+        end)
+      else
+        Enum.map(to_flat_list(grid), fun)
+      end
+
     {:ok, new_grid} = from_flat_list(new_contents)
     new_grid
   end
@@ -331,6 +340,7 @@ defmodule Grid do
   def index_to_coordinate(size, index) when index < size * size do
     {rem(index, size), div(index, size)}
   end
+
   def index_to_coordinate(%Grid{size: size}, index) do
     index_to_coordinate(size, index)
   end
@@ -354,12 +364,15 @@ defimpl Enumerable, for: Grid do
   defp do_reduce(_, {:halt, acc}, _fun) do
     {:halted, acc}
   end
+
   defp do_reduce([], {:cont, acc}, _fun) do
     {:done, acc}
   end
-  defp do_reduce([h|t], {:cont, acc}, fun) do
+
+  defp do_reduce([h | t], {:cont, acc}, fun) do
     do_reduce(t, fun.(h, acc), fun)
   end
+
   defp do_reduce(grid, {:suspend, acc}, fun) do
     {:suspended, acc, &do_reduce(grid, &1, fun)}
   end

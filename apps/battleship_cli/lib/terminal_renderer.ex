@@ -37,7 +37,7 @@ defmodule Battleship.TerminalRenderer do
   end
 
   def handle_event({:illegal_move, move_info}, game_over_listener) do
-    print("ILLEGAL MOVE by #{move_info.by}: #{inspect move_info.target}")
+    print("ILLEGAL MOVE by #{move_info.by}: #{inspect(move_info.target)}")
     {:ok, game_over_listener}
   end
 
@@ -62,25 +62,27 @@ defmodule Battleship.TerminalRenderer do
     IO.puts(output, ~s"#{name}\n"Du)
     pad = length(board) - length(remaining_ships)
     padded_remaining_ships = remaining_ships ++ List.duplicate(0, pad)
-    Enum.each(Enum.zip(board, padded_remaining_ships), fn({row, ship}) ->
+
+    Enum.each(Enum.zip(board, padded_remaining_ships), fn {row, ship} ->
       line = render_row(row) <> " " <> render_ship(ship)
       IO.puts(output, line)
     end)
   end
 
   defp render_ship(length) when length in 1..5 do
-    List.duplicate("█▉", length) |> Enum.join
+    List.duplicate("█▉", length) |> Enum.join()
   end
+
   defp render_ship(_), do: ""
 
   defp render_row(row) do
     row
-    |> Enum.map(&(icon(&1)))
-    |> Enum.join
+    |> Enum.map(&icon(&1))
+    |> Enum.join()
   end
 
   defp print(message) do
-    IO.puts(Process.group_leader, message)
+    IO.puts(Process.group_leader(), message)
   end
 
   defp speak_result({:sunk, 5}) do
@@ -90,5 +92,6 @@ defmodule Battleship.TerminalRenderer do
       _error -> :no_say_command
     end
   end
+
   defp speak_result(_), do: :ok
 end

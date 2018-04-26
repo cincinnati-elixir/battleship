@@ -24,9 +24,11 @@ defmodule JasonVoegele.Player do
       {7, 6, 3, :across},
       {8, 5, 2, :across}
     ]
+
     state = %__MODULE__{
       select_shot: create_select_shot_fn
     }
+
     {:reply, fleet, state}
   end
 
@@ -36,7 +38,8 @@ defmodule JasonVoegele.Player do
 
     new_state =
       %{state | remaining_ships: remaining_ships}
-      |> Map.update!(:shots, &([shot|&1]))
+      |> Map.update!(:shots, &[shot | &1])
+
     {:reply, shot, new_state}
   end
 
@@ -45,10 +48,9 @@ defmodule JasonVoegele.Player do
   # that should not be exposed to callers.
   defp create_select_shot_fn do
     {:ok, agent} = @shot_selection_strategy.start_link
-    fn(tracking_board, remaining_ships) ->
-      @shot_selection_strategy.select_shot(agent,
-                                           tracking_board,
-                                           remaining_ships)
+
+    fn tracking_board, remaining_ships ->
+      @shot_selection_strategy.select_shot(agent, tracking_board, remaining_ships)
     end
   end
 end

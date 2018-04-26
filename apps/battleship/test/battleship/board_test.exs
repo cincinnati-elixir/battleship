@@ -8,25 +8,26 @@ defmodule BoardTest do
     fleet_spec = [5, 4, 3, 3, 2]
     empty_board = Board.new(board_size, fleet_spec)
     {:ok, board} = Board.place_ships(empty_board, valid_fleet)
-    [board_size: board_size, fleet_spec: fleet_spec, empty_board: empty_board,
-     board: board]
+    [board_size: board_size, fleet_spec: fleet_spec, empty_board: empty_board, board: board]
   end
 
   def valid_fleet do
-    [ {0, 0, 5, :across},
+    [
+      {0, 0, 5, :across},
       {0, 1, 4, :across},
       {0, 2, 3, :across},
       {0, 3, 3, :across},
-      {0, 4, 2, :across} ]
+      {0, 4, 2, :across}
+    ]
   end
 
   def hits do
     [
-      [{0,0}, {1,0}, {2,0}, {3,0}, {4,0}],
-      [{0,1}, {1,1}, {2,1}, {3,1}],
-      [{0,2}, {1,2}, {2,2}],
-      [{0,3}, {1,3}, {2,3}],
-      [{0,4}, {1,4}]
+      [{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}],
+      [{0, 1}, {1, 1}, {2, 1}, {3, 1}],
+      [{0, 2}, {1, 2}, {2, 2}],
+      [{0, 3}, {1, 3}, {2, 3}],
+      [{0, 4}, {1, 4}]
     ]
   end
 
@@ -44,14 +45,16 @@ defmodule BoardTest do
   end
 
   test "place_ships with too many ships", context do
-    fleet = [{0, 5, 2, :across}|valid_fleet()]
+    fleet = [{0, 5, 2, :across} | valid_fleet()]
     assert {:error, _} = Board.place_ships(context.empty_board, fleet)
   end
 
   test "place_ships with ships of wrong length", context do
-    fleet = Enum.map(valid_fleet, fn({x, y, len, orientation}) ->
-      {x, y, len * 2, orientation}
-    end)
+    fleet =
+      Enum.map(valid_fleet, fn {x, y, len, orientation} ->
+        {x, y, len * 2, orientation}
+      end)
+
     assert {:error, _} = Board.place_ships(context.empty_board, fleet)
   end
 
@@ -66,16 +69,16 @@ defmodule BoardTest do
   end
 
   test "shot result of a miss", context do
-    assert {:miss, _} = Board.fire!(context.board, {9,9})
+    assert {:miss, _} = Board.fire!(context.board, {9, 9})
   end
 
   test "shot result of a hit", context do
-    assert {:hit, _} = Board.fire!(context.board, {0,0})
+    assert {:hit, _} = Board.fire!(context.board, {0, 0})
   end
 
   test "shot result of a hit that sinks a ship", context do
-    assert {:hit, board} = Board.fire!(context.board, {0,4})
-    assert {{:sunk, 2}, _} = Board.fire!(board, {1,4})
+    assert {:hit, board} = Board.fire!(context.board, {0, 4})
+    assert {{:sunk, 2}, _} = Board.fire!(board, {1, 4})
   end
 
   test "initial status is all unknown", context do
@@ -83,31 +86,34 @@ defmodule BoardTest do
   end
 
   test "status after one hit", context do
-    {:hit, board} = Board.fire!(context.board, {1,4})
-    expected = Grid.replace_at(initial_status, {1,4}, :hit)
+    {:hit, board} = Board.fire!(context.board, {1, 4})
+    expected = Grid.replace_at(initial_status, {1, 4}, :hit)
     assert Grid.to_list(expected) == Board.status(board)
   end
 
   test "status after one miss", context do
-    {:miss, board} = Board.fire!(context.board, {2,4})
-    expected = Grid.replace_at(initial_status, {2,4}, :miss)
+    {:miss, board} = Board.fire!(context.board, {2, 4})
+    expected = Grid.replace_at(initial_status, {2, 4}, :miss)
     assert Grid.to_list(expected) == Board.status(board)
   end
 
   test "status after a few shots", context do
-    shots = [{0,4}, {1,4}] ++ [{9,8}, {9,9}]
+    shots = [{0, 4}, {1, 4}] ++ [{9, 8}, {9, 9}]
     board = Board.rapid_fire!(context.board, shots)
 
-    expected = Grid.map(initial_status, fn(elem, coord) ->
-      cond do
-        coord in [{0,4}, {1,4}] ->
-          :hit
-        coord in [{9,8}, {9,9}] ->
-          :miss
-        true ->
-          elem
-      end
-    end)
+    expected =
+      Grid.map(initial_status, fn elem, coord ->
+        cond do
+          coord in [{0, 4}, {1, 4}] ->
+            :hit
+
+          coord in [{9, 8}, {9, 9}] ->
+            :miss
+
+          true ->
+            elem
+        end
+      end)
 
     assert Grid.to_list(expected) == Board.status(board)
   end
@@ -116,31 +122,32 @@ defmodule BoardTest do
     all_hits = List.flatten(hits)
     board = Board.rapid_fire!(context.board, all_hits)
 
-    expected = Grid.map(initial_status, fn(elem, coord) ->
-      if coord in all_hits do
-        :hit
-      else
-        elem
-      end
-    end)
+    expected =
+      Grid.map(initial_status, fn elem, coord ->
+        if coord in all_hits do
+          :hit
+        else
+          elem
+        end
+      end)
 
     assert Grid.to_list(expected) == Board.status(board)
     assert Board.all_sunk?(board)
   end
 
   test "legal_shot? with good coordinates", context do
-    assert Board.legal_shot?(context.board, {0,0})
-    assert Board.legal_shot?(context.board, {9,9})
+    assert Board.legal_shot?(context.board, {0, 0})
+    assert Board.legal_shot?(context.board, {9, 9})
   end
 
   test "legal_shot? with invalid coordinates", context do
-    assert not Board.legal_shot?(context.board, {-1,0})
-    assert not Board.legal_shot?(context.board, {10,9})
+    assert not Board.legal_shot?(context.board, {-1, 0})
+    assert not Board.legal_shot?(context.board, {10, 9})
   end
 
   test "legal_shot? with things that are not actually coordinates", context do
     assert not Board.legal_shot?(context.board, nil)
-    assert not Board.legal_shot?(context.board, [0,0])
+    assert not Board.legal_shot?(context.board, [0, 0])
   end
 
   test "remaining_ships in initial state", context do
@@ -148,7 +155,7 @@ defmodule BoardTest do
   end
 
   test "remaining_ships after hitting (but not sinking) some ships", context do
-    shots = Enum.map(hits, &(tl(&1))) |> List.flatten
+    shots = Enum.map(hits, &tl(&1)) |> List.flatten()
     board = Board.rapid_fire!(context.board, shots)
     assert Board.remaining_ships(board) == context.fleet_spec
   end
@@ -165,4 +172,3 @@ defmodule BoardTest do
     assert Board.remaining_ships(board) == []
   end
 end
-

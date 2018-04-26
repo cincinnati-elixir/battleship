@@ -37,4 +37,3 @@ defmodule Battleship.Player.Linear do
     {:reply, shot_coordinate, new_state}
   end
 end
-
