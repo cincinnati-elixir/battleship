@@ -23,6 +23,8 @@ defmodule Battleship.Player.Linear do
       {0, 4, 2, :across}
     ]
 
+    {:ok, state} = init(nil)
+
     {:reply, fleet, state}
   end
 

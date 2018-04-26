@@ -5,7 +5,7 @@ defmodule Battleship.Game.Supervisor do
 
   alias Battleship.Player.Supervisor, as: PlayerSupervisor
 
-  def start_link do
+  def start_link(:ok) do
     Supervisor.start_link(@name, :ok, name: @name)
   end
 
