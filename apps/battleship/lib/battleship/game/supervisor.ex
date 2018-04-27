@@ -49,9 +49,8 @@ defmodule Battleship.Game.Supervisor do
 
     for i <- 1..num_games do
       {:ok, game_pid} = Supervisor.start_child(@name, [players, game_opts])
-      ref = Process.monitor(game_pid)
       Battleship.Game.start_game(game_pid)
-      wait_for_exit(ref)
+      wait_for_exit(game_pid)
     end
 
     GenEvent.notify(event_manager, :match_over)

@@ -357,6 +357,8 @@ defimpl Enumerable, for: Grid do
 
   def member?(_grid, _value), do: {:error, __MODULE__}
 
+  def slice(_grid), do: {:error, __MODULE__}
+
   def reduce(grid, acc, fun) do
     do_reduce(Grid.to_flat_list(grid), acc, fun)
   end

@@ -106,7 +106,7 @@ defmodule Battleship.Board do
   Raises an `IllegalMoveError` if the `coordinate` is not on the board.
   """
   @spec fire!(board, coordinate) :: {shot_result, board}
-  def fire!(board, coordinate = {_x, _y}) do
+  def fire!(board, {_x, _y} = coordinate) do
     if legal_shot?(board, coordinate) do
       new_grid =
         Grid.update_at(board.grid, coordinate, fn cell ->

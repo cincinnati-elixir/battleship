@@ -17,6 +17,7 @@ defmodule Battleship.Umbrella.MixProject do
   defp deps do
     [
       {:dialyxir, "~> 0.5", only: [:dev]},
+      {:credo, "~> 0.9.2", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.18", only: :dev}
     ]
   end
