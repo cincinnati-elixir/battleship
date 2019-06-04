@@ -21,7 +21,7 @@ defmodule JasonVoegele.ShotSelectionStrategy.HuntAndTarget do
     new_state.last_shot
   end
 
-  defp update_state_for_last_turn(state, tracking_board, remaining_ships) do
+  def update_state_for_last_turn(state, tracking_board, remaining_ships) do
     last_shot_result =
       shot_result(tracking_board, state.last_shot, remaining_ships, state.remaining_ships)
 
@@ -33,14 +33,14 @@ defmodule JasonVoegele.ShotSelectionStrategy.HuntAndTarget do
     }
   end
 
-  defp make_move(%{mode: :hunting} = state, board) do
+  def make_move(%{mode: :hunting} = state, board) do
     coordinates = state.remaining_coordinates
     # shot = select_random_with_parity(coordinates, Enum.min(state.remaining_ships))
     shot = select_by_probability(board, state.remaining_ships)
     take_shot(%{state | hit_stack: []}, shot, [])
   end
 
-  defp make_move(%{mode: :targeting, last_shot_result: :hit} = state, board) do
+  def make_move(%{mode: :targeting, last_shot_result: :hit} = state, board) do
     hit_stack = [state.last_shot | state.hit_stack]
     candidates = possible_ship_coordinates(board, state.last_shot) ++ state.candidates
     {shot, new_candidates} = select_candidate(board, candidates, hit_stack)
@@ -48,16 +48,16 @@ defmodule JasonVoegele.ShotSelectionStrategy.HuntAndTarget do
     take_shot(%{state | hit_stack: hit_stack}, shot, new_candidates)
   end
 
-  defp make_move(%{mode: :targeting, last_shot_result: :miss} = state, board) do
+  def make_move(%{mode: :targeting, last_shot_result: :miss} = state, board) do
     {shot, new_candidates} = select_candidate(board, state.candidates, state.hit_stack)
     take_shot(%{state | hit_stack: state.hit_stack}, shot, new_candidates)
   end
 
-  defp make_move(state, board) do
+  def make_move(state, board) do
     exit(state)
   end
 
-  defp select_by_probability(tracking_board, remaining_ships) do
+  def select_by_probability(tracking_board, remaining_ships) do
     probability_grid = create_probability_grid(tracking_board, remaining_ships)
 
     probability_vector =
@@ -74,7 +74,7 @@ defmodule JasonVoegele.ShotSelectionStrategy.HuntAndTarget do
     Enum.at(probability_vector, index)
   end
 
-  defp filter_by_parity(coordinates, parity) do
+  def filter_by_parity(coordinates, parity) do
     parity_grid =
       Grid.new(10)
       |> Grid.map(fn _, {x, y} -> rem(x + y, parity) end)
@@ -84,7 +84,7 @@ defmodule JasonVoegele.ShotSelectionStrategy.HuntAndTarget do
     end)
   end
 
-  defp select_random_with_parity(coordinates, parity) do
+  def select_random_with_parity(coordinates, parity) do
     candidates =
       case filter_by_parity(coordinates, parity) do
         [] -> coordinates
@@ -95,13 +95,13 @@ defmodule JasonVoegele.ShotSelectionStrategy.HuntAndTarget do
     Enum.at(candidates, index)
   end
 
-  defp select_candidate(_board, candidates, hit_stack) do
+  def select_candidate(_board, candidates, hit_stack) do
     sorted_candidates = sort_candidates(candidates, hit_stack)
     {_, _, shot} = candidate = List.first(sorted_candidates)
     {shot, List.delete(candidates, candidate)}
   end
 
-  defp sort_candidates(candidates, hit_stack) do
+  def sort_candidates(candidates, hit_stack) do
     targeting_direction = targeting_direction(hit_stack)
 
     candidates
@@ -113,13 +113,13 @@ defmodule JasonVoegele.ShotSelectionStrategy.HuntAndTarget do
     end)
   end
 
-  defp take_shot(state, shot, new_candidates) do
+  def take_shot(state, shot, new_candidates) do
     %{state | candidates: new_candidates, last_shot: shot}
     |> Map.update!(:shots, &[shot | &1])
     |> Map.update!(:remaining_coordinates, &List.delete(&1, shot))
   end
 
-  defp create_probability_grid(tracking_board, remaining_ships) do
+  def create_probability_grid(tracking_board, remaining_ships) do
     valid_coordinates =
       tracking_board
       |> all_valid_ship_arrangements(remaining_ships)
@@ -131,7 +131,7 @@ defmodule JasonVoegele.ShotSelectionStrategy.HuntAndTarget do
     end)
   end
 
-  defp all_valid_ship_arrangements(tracking_board, remaining_ships) do
+  def all_valid_ship_arrangements(tracking_board, remaining_ships) do
     for ship <- remaining_ships,
         {x, y} <- all_coordinates,
         orientation <- [:across, :down],
@@ -142,13 +142,13 @@ defmodule JasonVoegele.ShotSelectionStrategy.HuntAndTarget do
   # Assume we are in hunting mode, and therefore consider :hit and :miss cells
   # to be equivalent. Without this assumption, a ship could fit even if some of
   # its coordinates are :hit.
-  defp ship_fits?(ship, board) do
+  def ship_fits?(ship, board) do
     Enum.all?(ship_coordinates(ship), fn coord ->
       Grid.on?(board, coord) && Grid.fetch!(board, coord) == :unknown
     end)
   end
 
-  defp ship_coordinates({x, y, size, orientation}) do
+  def ship_coordinates({x, y, size, orientation}) do
     Enum.map(0..(size - 1), fn n ->
       case orientation do
         :across -> {x + n, y}

@@ -6,7 +6,7 @@ defmodule Battleship.CLI do
   end
 
   defp parse_args(args) do
-    OptionParser.parse(args)
+    OptionParser.parse(args, strict: [debug: :boolean])
   end
 
   defp handle_errors!([], _, _), do: :nothing
