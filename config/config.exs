@@ -2,6 +2,16 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
+config :battleship_web,
+  generators: [context_app: false]
+
+# Configures the endpoint
+config :battleship_web, BattleshipWeb.Endpoint,
+  url: [host: "localhost"],
+  secret_key_base: "MO1npR0fULSNQb9BfAd5ZfGlsIVzQL9agkYXe7U8I+gPoBiyUvbngmo52XHCxjXa",
+  render_errors: [view: BattleshipWeb.ErrorView, accepts: ~w(html json)],
+  pubsub: [name: BattleshipWeb.PubSub, adapter: Phoenix.PubSub.PG2]
+
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this
 # file won't be loaded nor affect the parent project. For this reason,
