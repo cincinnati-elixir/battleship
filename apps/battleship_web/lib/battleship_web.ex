@@ -22,6 +22,7 @@ defmodule BattleshipWeb do
       use Phoenix.Controller, namespace: BattleshipWeb
       import Plug.Conn
       import BattleshipWeb.Gettext
+      import Phoenix.LiveView.Controller, only: [live_render: 3]
       alias BattleshipWeb.Router.Helpers, as: Routes
     end
   end
@@ -38,6 +39,7 @@ defmodule BattleshipWeb do
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML
 
+      import Phoenix.LiveView, only: [live_render: 2, live_render: 3]
       import BattleshipWeb.ErrorHelpers
       import BattleshipWeb.Gettext
       alias BattleshipWeb.Router.Helpers, as: Routes
@@ -49,6 +51,7 @@ defmodule BattleshipWeb do
       use Phoenix.Router
       import Plug.Conn
       import Phoenix.Controller
+      import Phoenix.LiveView.Router
     end
   end
 

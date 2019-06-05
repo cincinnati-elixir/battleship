@@ -1,0 +1,9 @@
+{application,players,
+             [{applications,[kernel,stdlib,elixir,logger]},
+              {description,"players"},
+              {modules,['Elixir.JasonVoegele.Player',
+                        'Elixir.JasonVoegele.ShotSelectionStrategy',
+                        'Elixir.JasonVoegele.ShotSelectionStrategy.HuntAndTarget',
+                        'Elixir.JasonVoegele.ShotSelectionStrategy.Random']},
+              {registered,[]},
+              {vsn,"0.1.0"}]}.

@@ -10,7 +10,10 @@ config :battleship_web, BattleshipWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "MO1npR0fULSNQb9BfAd5ZfGlsIVzQL9agkYXe7U8I+gPoBiyUvbngmo52XHCxjXa",
   render_errors: [view: BattleshipWeb.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: BattleshipWeb.PubSub, adapter: Phoenix.PubSub.PG2]
+  pubsub: [name: BattleshipWeb.PubSub, adapter: Phoenix.PubSub.PG2],
+  live_view: [
+    signing_salt: "VfYoKi68OndxvQWt/f8HutCUGSbuo6IT8h+OitDQ6Yc4J6TsqjZcNnV87wjCpRfQ"
+  ]
 
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this
@@ -37,4 +40,4 @@ config :battleship_web, BattleshipWeb.Endpoint,
 # Configuration from the imported file will override the ones defined
 # here (which is why it is important to import them last).
 #
-#     import_config "#{Mix.env}.exs"
+import_config "#{Mix.env()}.exs"

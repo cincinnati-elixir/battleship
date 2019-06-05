@@ -23,7 +23,7 @@ defmodule Battleship.Game do
   @default_options [
     board_size: 10,
     fleet_spec: [5, 4, 3, 3, 2],
-    move_delay: 100,
+    move_delay: 10,
     round_delay: 1000
   ]
 

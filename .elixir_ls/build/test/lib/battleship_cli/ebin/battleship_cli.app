@@ -1,0 +1,9 @@
+{application,battleship_cli,
+             [{applications,[kernel,stdlib,elixir,logger,battleship,dye]},
+              {description,"battleship_cli"},
+              {modules,['Elixir.Battleship.CLI',
+                        'Elixir.Battleship.MatchEventHandler',
+                        'Elixir.Battleship.SimpleGameEventHandler',
+                        'Elixir.Battleship.TerminalRenderer']},
+              {registered,[]},
+              {vsn,"0.1.0"}]}.
