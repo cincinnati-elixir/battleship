@@ -35,8 +35,8 @@ defmodule JasonVoegele.ShotSelectionStrategy.HuntAndTarget do
 
   defp make_move(%{mode: :hunting} = state, board) do
     coordinates = state.remaining_coordinates
-    # shot = select_random_with_parity(coordinates, Enum.min(state.remaining_ships))
-    shot = select_by_probability(board, state.remaining_ships)
+    shot = select_random_with_parity(coordinates, Enum.min(state.remaining_ships))
+    # shot = select_by_probability(board, state.remaining_ships)
     take_shot(%{state | hit_stack: []}, shot, [])
   end
 
@@ -70,7 +70,7 @@ defmodule JasonVoegele.ShotSelectionStrategy.HuntAndTarget do
     # max_p = {_, coord} = Enum.max_by(Grid.with_coordinate(probability_grid), fn({val, _}) -> val end)
     # parity = coord in probability_vector
     # IO.puts("Max probability: #{inspect max_p}, parity? #{inspect parity}")
-    index = :rand.uniform(length(probability_vector)) - 1
+    index = :random.uniform(length(probability_vector)) - 1
     Enum.at(probability_vector, index)
   end
 
