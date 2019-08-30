@@ -6,7 +6,7 @@ defmodule Battleship.CLI do
   end
 
   defp parse_args(args) do
-    OptionParser.parse(args)
+    OptionParser.parse(args, strict: [debug: :boolean])
   end
 
   defp handle_errors!([], _, _), do: :nothing
@@ -32,7 +32,7 @@ defmodule Battleship.CLI do
   end
 
   defp usage do
-    "Usage: ..."
+    "Usage: battleship start-game player1 player2"
   end
 
   defp start_game([player1, player2]) do
