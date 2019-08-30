@@ -1,4 +1,4 @@
-defmodule Battleship.Player.Linear do
+defmodule Battleship.Player.Example.Linear do
   use GenServer
 
   def start_link do

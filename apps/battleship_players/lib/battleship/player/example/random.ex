@@ -1,4 +1,4 @@
-defmodule Battleship.Player.Random do
+defmodule Battleship.Player.Example.Random do
   use GenServer
 
   def start_link do
